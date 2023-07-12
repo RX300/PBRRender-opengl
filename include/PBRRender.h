@@ -2,7 +2,8 @@
 #include "Input.h"
 #include "glad/glad.h"
 #include "RenderQueue.h"
-// #include <pybind11/numpy.h>
+#include "GBuffer.h"
+#include <pybind11/numpy.h>
 namespace Renderer
 {
     inline void pbrShaderInit(Shader *shader, WindowSystem *window, Camera *cam, Scene *scene)
@@ -186,40 +187,42 @@ namespace Renderer
         glViewport(0, 0, width, height);
 
         // 创建PBO
-        glGenBuffers(1, &readPBO);
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readPBO);
-        glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, NULL, GL_STREAM_DRAW);
+        // glGenBuffers(1, &readPBO);
+        // glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readPBO);
+        // glBufferData(GL_PIXEL_UNPACK_BUFFER, width * height * 4, NULL, GL_STREAM_DRAW);
+        // glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     }
     inline void PBRRender::Render(Shader &pbrShader)
     {
         // 传统调用着色器更新着色操作的方式
         //-------------------------------------------------------------------------------------------
-        pbrShader.use();
-        pbrShader.setInt("irradianceMap", 0);
-        pbrShader.setInt("prefilterMap", 1);
-        pbrShader.setInt("brdfLUT", 2);
-        pbrShader.setInt("material.albedoMap", 3);
-        pbrShader.setInt("material.normalMap", 4);
-        pbrShader.setInt("material.metallicMap", 5);
-        pbrShader.setInt("material.roughnessMap", 6);
-        pbrShader.setInt("material.aoMap", 7);
-        pbrShader.setVec3("material.albedo", 0.5f, 0.0f, 0.0f);
-        pbrShader.setFloat("ao", 1.0f);
+        // pbrShader.use();
+        // pbrShader.setInt("irradianceMap", 0);
+        // pbrShader.setInt("prefilterMap", 1);
+        // pbrShader.setInt("brdfLUT", 2);
+        // pbrShader.setInt("material.albedoMap", 3);
+        // pbrShader.setInt("material.normalMap", 4);
+        // pbrShader.setInt("material.metallicMap", 5);
+        // pbrShader.setInt("material.roughnessMap", 6);
+        // pbrShader.setInt("material.aoMap", 7);
+        // pbrShader.setVec3("material.albedo", 0.5f, 0.0f, 0.0f);
+        // pbrShader.setFloat("ao", 1.0f);
 
-        auto resolution = m_window.GetFramebufferDims();
-        glm::mat4 projection = glm::perspective(glm::radians(m_camera->Zoom), (float)resolution.first / (float)resolution.second, 0.1f, 100.0f);
-        pbrShader.setMat4("projection", projection);
-        pbrShader.unuse();
-        m_scene->SetSkybox(projection);
-        m_scene->Bake(m_window.GetWindow());
+        // auto resolution = m_window.GetFramebufferDims();
+        // glm::mat4 projection = glm::perspective(glm::radians(m_camera->Zoom), (float)resolution.first / (float)resolution.second, 0.1f, 100.0f);
+        // pbrShader.setMat4("projection", projection);
+        // pbrShader.unuse();
+        // m_scene->SetSkybox(projection);
+        // m_scene->Bake(m_window.GetWindow());
+
         // 使用回调函数更新着色器
         //-------------------------------------------------------------------------------------------
         // pbrShader.initShaderRender(pbrShaderInit, &this->m_window, this->m_camera, this->m_scene);
 
         // 使用渲染队列更新着色器
         //-------------------------------------------------------------------------------------------
-        // m_initQueue.Sort();
-        // m_initQueue.Update(this->m_camera, &this->m_window, this->m_scene);
+        m_initQueue.Sort();
+        m_initQueue.Update(this->m_camera, &this->m_window, this->m_scene);
         /*******开启测试*******/
         // configure global opengl state
         // -----------------------------

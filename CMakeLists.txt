@@ -1,3 +1,4 @@
+# https://www.bilibili.com/read/cv18494541/
 # 设置cmake最小版本
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_TOOLCHAIN_FILE "D:/utils/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake")
@@ -6,7 +7,15 @@ set(VCPKG_TARGET_TRIPLET "x64-windows")
 # 设置项目名称
 project(Advanced—intancing)
 
-# set(PYTHON_EXECUTABLE "D:/Anaconda/envs/AiStudy/python.exe")
+set(PYTHON_EXECUTABLE "D:/Anaconda/envs/AiStudy/python.exe")
+
+# 打印python 版本和解释器路径
+message(STATUS "python version: ${PYTHON_VERSION}")
+message(STATUS "python path: ${PYTHON_EXECUTABLE}")
+
+# 打印python头文件路径和库文件路径
+message(STATUS "python include path: ${PYTHON_INCLUDE_DIRS}")
+message(STATUS "python lib path: ${PYTHON_LIBRARIES}")
 
 # 设置C++标准
 set(CMAKE_CXX_STANDARD 20)
@@ -24,6 +33,10 @@ set(exename advanced_GLSL)
 
 # 添加可执行文件
 add_executable(${exename} ${SOURCE_FILES})
+
+# 添加python头文件和库文件
+target_include_directories(${exename} PRIVATE ${PYTHON_INCLUDE_DIRS})
+target_link_libraries(${exename} PRIVATE ${PYTHON_LIBRARIES})
 
 # 添加头文件目录
 target_include_directories(${exename} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -44,6 +57,12 @@ target_link_libraries(${exename} PRIVATE glm::glm)
 find_package(assimp CONFIG REQUIRED)
 target_link_libraries(${exename} PRIVATE assimp::assimp)
 configure_file(root_directory.h.in ${CMAKE_SOURCE_DIR}/include/root_directory.h)
+
+if(MSVC)
+        # 设置 Cpp 语言编译 flags,  输入代码编码格式为 utf-8
+        set(CMAKE_CXX_FLAGS /source-charset:utf-8)
+        set_target_properties(${exename} PROPERTIES COMPILE_FLAGS "/EHsc")
+endif()
 
 # add_subdirectory("D:/utils/pybind11/pybind11" pybindbuild)
 

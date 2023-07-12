@@ -49,6 +49,14 @@ namespace ModelLoader
         }
         ~Model()
         {
+            for (auto &mesh : meshes)
+            {
+                mesh.reset();
+            }
+            for (auto &texture : textures_loaded)
+            {
+                texture.reset();
+            }
         }
 
     private:

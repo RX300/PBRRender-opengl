@@ -159,7 +159,6 @@ void main()
         Lo += (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
     }   
     
-    //环境光照，使用HDR作为环境光，引入IBL预计算的辐照度贴图
     // ambient lighting (we now use IBL as the ambient term)
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
     
@@ -178,7 +177,6 @@ void main()
 
     vec3 ambient = (kD * diffuse + specular) * ao;
     
-    //把环境光和直接光照相加
     vec3 color = ambient + Lo;
 
     // HDR tonemapping
