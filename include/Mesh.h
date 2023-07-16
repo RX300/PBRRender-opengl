@@ -1,9 +1,14 @@
 #pragma once
 
+// 该处牵扯到如何优化ubo性能，不能为每一个mesh都创建一个ubo，而是为每一个材质创建一个ubo，然后将所有使用该材质的mesh的ubo指向该材质的ubo
+// 因为每个mesh要是维护一个ubo的话，那么不同的mesh的ubo会绑定到同一个binding point上，这样就会导致每次绘制时都要重新绑定ubo，这样就会降低性能
+// https://community.khronos.org/t/performance-of-opengles-glbindbufferbase/107860/5
+// https://community.khronos.org/t/glbindbufferrange-hugely-expensive/71026
 #include <glad/glad.h> // holds all OpenGL type declarations
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Shader.h"
 #include "Texture.h"
@@ -37,16 +42,16 @@ namespace ModelLoader
     {
         // material properties
         glm::vec3 albedo = glm::vec3(0.0f);
-        float metallic = 0.0f;
-        float roughness = 0.0f;
+        GLfloat metallic = 1.0f;
+        GLfloat roughness = 0.0f;
 
         // 是否用各项属性的贴图
-        bool useAlbedoMap = false;
-        bool useNormalMap = false;
-        bool useMetallicMap = false;
-        bool useRoughnessMap = false;
-        bool useAOMap = false;
-        bool useEmissiveMap = false;
+        GLuint useAlbedoMap = GL_FALSE;
+        GLuint useNormalMap = GL_FALSE;
+        GLuint useMetallicMap = GL_FALSE;
+        GLuint useRoughnessMap = GL_FALSE;
+        GLuint useAOMap = GL_FALSE;
+        GLuint useEmissiveMap = GL_FALSE;
     };
 
     class Mesh
@@ -59,6 +64,21 @@ namespace ModelLoader
         PBRMaterial pbrmat;
         unsigned int VAO;
         bool usePBR;
+        /*  UBO  */
+        GLuint ubo;
+        GLuint bindingPoint = 0; // 和pbr.fs中的layout(std140, binding = 0)对应
+        GLfloat *ubo_ptr;
+
+        void InitializeUBO()
+        {
+            // 生成 UBO
+            glGenBuffers(1, &ubo);
+            glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+            glBufferData(GL_UNIFORM_BUFFER, 44, nullptr, GL_STATIC_DRAW);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+            glBindBufferRange(GL_UNIFORM_BUFFER, 0, ubo, 0, 44);
+        }
+
         // constructor
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Renderer::Texture>> textures, bool PBR, PBRMaterial pbr = PBRMaterial()) : usePBR(PBR)
         {
@@ -66,6 +86,8 @@ namespace ModelLoader
             this->indices = indices;
             this->textures = textures;
             this->pbrmat = pbr;
+            // 生成 UBO(为每一个材质创建一个ubo，每次更新网格关于材质的数据时只需要更新材质的ubo即可)
+            InitializeUBO();
             // now that we have all the required data, set the vertex buffers and its attribute pointers.
             setupMesh();
         }
@@ -74,6 +96,7 @@ namespace ModelLoader
             glDeleteVertexArrays(1, &VAO);
             glDeleteBuffers(1, &VBO);
             glDeleteBuffers(1, &EBO);
+            glDeleteBuffers(1, &ubo);
         }
         // render the mesh
         void Draw(Renderer::Shader &shader)
@@ -109,14 +132,39 @@ namespace ModelLoader
             else
             {
                 // 这里先不考虑用对同一参数用多张纹理贴图的情况
-                shader.setBool("material.useAlbedoMap", pbrmat.useAlbedoMap);
-                shader.setBool("material.useNormalMap", pbrmat.useNormalMap);
-                shader.setBool("material.useMetallicMap", pbrmat.useMetallicMap);
-                shader.setBool("material.useRoughnessMap", pbrmat.useRoughnessMap);
-                shader.setBool("material.useAOMap", pbrmat.useAOMap);
-                shader.setVec3("material.albedo", pbrmat.albedo);
-                shader.setFloat("material.metallic", pbrmat.metallic);
-                shader.setFloat("material.roughness", pbrmat.roughness);
+                // bind appropriate textures
+                // shader.setVec3("material.albedo", pbrmat.albedo);
+                // shader.setFloat("material.metallic", pbrmat.metallic);
+                // shader.setFloat("material.roughness", pbrmat.roughness);
+                // shader.setBool("material.useAlbedoMap", pbrmat.useAlbedoMap);
+                // shader.setBool("material.useNormalMap", pbrmat.useNormalMap);
+                // shader.setBool("material.useMetallicMap", pbrmat.useMetallicMap);
+                // shader.setBool("material.useRoughnessMap", pbrmat.useRoughnessMap);
+                // shader.setBool("material.useAOMap", pbrmat.useAOMap);
+                // shader.setBool("material.useEmissiveMap", pbrmat.useEmissiveMap);
+                glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, ubo);
+                glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+                // 映射ubo
+                ubo_ptr = (GLfloat *)glMapBufferRange(GL_UNIFORM_BUFFER, 0, 44, GL_MAP_WRITE_BIT);
+                // 检测是否映射成功
+                if (ubo_ptr == nullptr)
+                {
+                    std::cout << "Failed to map uniform buffer object!" << std::endl;
+                    exit(-1);
+                }
+                memcpy(&ubo_ptr[0], glm::value_ptr(pbrmat.albedo), 12);
+                ubo_ptr[3] = pbrmat.metallic;
+                ubo_ptr[4] = pbrmat.roughness;
+                // ubo_ptr[5] = pbrmat.useAlbedoMap;
+                glBufferSubData(GL_UNIFORM_BUFFER, 20, 4, &pbrmat.useAlbedoMap);
+                ubo_ptr[6] = pbrmat.useNormalMap;
+                ubo_ptr[7] = pbrmat.useMetallicMap;
+                ubo_ptr[8] = pbrmat.useRoughnessMap;
+                ubo_ptr[9] = pbrmat.useAOMap;
+                ubo_ptr[10] = pbrmat.useEmissiveMap;
+                glUnmapBuffer(GL_UNIFORM_BUFFER);
+
+                glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
                 // bind appropriate textures
                 for (unsigned int i = 0; i < textures.size(); i++)

@@ -193,11 +193,11 @@ namespace ModelLoader
                 {
                     std::vector<std::shared_ptr<Renderer::Texture>> albedoMaps = loadMaterialTextures(material, aiTextureType_BASE_COLOR, "material.albedoMap", true);
                     textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
-                    pbrMat.useAlbedoMap = true;
+                    pbrMat.useAlbedoMap = GL_TRUE;
                 }
                 else
                 {
-                    pbrMat.useAlbedoMap = false;
+                    pbrMat.useAlbedoMap = GL_FALSE;
                     aiColor3D color;
                     material->Get(AI_MATKEY_BASE_COLOR, color);
                     pbrMat.albedo = glm::vec3(color.r, color.g, color.b);
@@ -208,22 +208,22 @@ namespace ModelLoader
                 {
                     std::vector<std::shared_ptr<Renderer::Texture>> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "material.normalMap");
                     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-                    pbrMat.useNormalMap = true;
+                    pbrMat.useNormalMap = GL_TRUE;
                 }
                 else
                 {
-                    pbrMat.useNormalMap = false;
+                    pbrMat.useNormalMap = GL_FALSE;
                 }
                 // 3. metallic maps
                 if (material->GetTextureCount(aiTextureType_METALNESS) > 0)
                 {
                     std::vector<std::shared_ptr<Renderer::Texture>> metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "material.metallicMap");
                     textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
-                    pbrMat.useMetallicMap = true;
+                    pbrMat.useMetallicMap = GL_TRUE;
                 }
                 else
                 {
-                    pbrMat.useMetallicMap = false;
+                    pbrMat.useMetallicMap = GL_FALSE;
                     material->Get(AI_MATKEY_METALLIC_FACTOR, pbrMat.metallic);
                 }
                 // 4. roughness maps
@@ -231,11 +231,11 @@ namespace ModelLoader
                 {
                     std::vector<std::shared_ptr<Renderer::Texture>> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "material.roughnessMap");
                     textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
-                    pbrMat.useRoughnessMap = true;
+                    pbrMat.useRoughnessMap = GL_TRUE;
                 }
                 else
                 {
-                    pbrMat.useRoughnessMap = false;
+                    pbrMat.useRoughnessMap = GL_FALSE;
                     material->Get(AI_MATKEY_ROUGHNESS_FACTOR, pbrMat.roughness);
                 }
                 // 5. ao maps
@@ -243,22 +243,22 @@ namespace ModelLoader
                 {
                     std::vector<std::shared_ptr<Renderer::Texture>> aoMaps = loadMaterialTextures(material, aiTextureType::aiTextureType_AMBIENT_OCCLUSION, "material.aoMap");
                     textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
-                    pbrMat.useAOMap = true;
+                    pbrMat.useAOMap = GL_TRUE;
                 }
                 else
                 {
-                    pbrMat.useAOMap = false;
+                    pbrMat.useAOMap = GL_FALSE;
                 }
                 // 6. emissive maps
                 if (material->GetTextureCount(aiTextureType_EMISSIVE) > 0)
                 {
                     std::vector<std::shared_ptr<Renderer::Texture>> emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "material.emissiveMap");
                     textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
-                    pbrMat.useEmissiveMap = true;
+                    pbrMat.useEmissiveMap = GL_TRUE;
                 }
                 else
                 {
-                    pbrMat.useEmissiveMap = false;
+                    pbrMat.useEmissiveMap = GL_FALSE;
                 }
 
                 // return a mesh object created from the extracted mesh data

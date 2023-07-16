@@ -240,8 +240,8 @@ namespace Renderer
             float currentFrame = static_cast<float>(glfwGetTime());
             deltaTime = currentFrame - lastFrame;
             lastFrame = currentFrame;
-            std::cout << "\rfps: " << std::setw(6) << std::setprecision(2) << std::fixed << 1.0f / deltaTime
-                      << "    currentFrame: " << std::setw(8) << std::setprecision(5) << std::fixed << currentFrame << std::flush;
+            // std::cout << "\rfps: " << std::setw(6) << std::setprecision(2) << std::fixed << 1.0f / deltaTime
+            //           << "    currentFrame: " << std::setw(8) << std::setprecision(5) << std::fixed << currentFrame << std::flush;
             // 渲染指令
             glClearColor(0.9f, 0.3f, 0.3f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -256,6 +256,17 @@ namespace Renderer
             m_window.SwapBuffers();
             // 检查是否有触发事件（键盘输入、鼠标移动等）
             glfwPollEvents();
+            // 更新计数器
+            frameCount++;
+
+            // 当达到一秒时，打印帧数并重置计数器和计时器
+            if (glfwGetTime() - timer >= 1.0)
+            {
+                std::cout << "\rfps: " << std::setw(6) << std::setprecision(2) << frameCount
+                          << "    currentFrame: " << std::setw(8) << std::setprecision(5) << std::fixed << currentFrame << std::flush;
+                frameCount = 0;
+                timer = glfwGetTime();
+            }
         }
     }
 
