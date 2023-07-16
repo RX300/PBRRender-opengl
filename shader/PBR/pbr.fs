@@ -1,20 +1,34 @@
-#version 330 core
+#version 430 core
 out vec4 FragColor;
 in vec2 TexCoords;
 in vec3 WorldPos;
 in vec3 Normal;
+//material parameters block
+layout (std140,binding=0) uniform MaterialBlock
+{
+ vec3 albedo;
+ float metallic;
+ float roughness;
 
-// material parameters
-struct Material{
  bool useAlbedoMap;
  bool useNormalMap;
  bool useMetallicMap;
  bool useRoughnessMap;
  bool useAOMap;
-
+ bool useEmissiveMap;
+}materialProperties;
+// texture samplers struct(不透明数据只能放在uniform里)
+struct MaterialTexture{
  vec3 albedo;
  float metallic;
  float roughness;
+
+ bool useAlbedoMap;
+ bool useNormalMap;
+ bool useMetallicMap;
+ bool useRoughnessMap;
+ bool useAOMap;
+ bool useEmissiveMap;
 
  sampler2D albedoMap;
  sampler2D normalMap;
@@ -22,7 +36,7 @@ struct Material{
  sampler2D roughnessMap;
  sampler2D aoMap;
 };
-uniform Material material;
+uniform MaterialTexture material;
 // IBL
 uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
@@ -106,13 +120,17 @@ void main()
 {   
 
     // material properties
-    vec3 albedo = material.useAlbedoMap? (texture(material.albedoMap, TexCoords).rgb) : material.albedo;
-    float metallic= material.useMetallicMap? (texture(material.metallicMap, TexCoords).b) : material.metallic;
-    float roughness = material.useRoughnessMap? (texture(material.roughnessMap, TexCoords).g) : material.roughness;
+    // vec3 albedo = (texture(material.albedoMap, TexCoords).rgb);
+    // float metallic= (texture(material.metallicMap, TexCoords).b);
+    // float roughness = (texture(material.roughnessMap, TexCoords).g);
+    // float ao=1.0f;
+    vec3 albedo = materialProperties.useAlbedoMap? (texture(material.albedoMap, TexCoords).rgb) : materialProperties.albedo;
+    float metallic= materialProperties.useMetallicMap? (texture(material.metallicMap, TexCoords).b) : materialProperties.metallic;
+    float roughness = materialProperties.useRoughnessMap? (texture(material.roughnessMap, TexCoords).g) : materialProperties.roughness;
     float ao = material.useAOMap? (texture(material.aoMap, TexCoords).r) : 1.0f;
-       
+    
     // input lighting data
-    vec3 N=material.useNormalMap? getNormalFromMap():Normal;
+    vec3 N=materialProperties.useNormalMap? getNormalFromMap():Normal;
     vec3 V = normalize(camPos - WorldPos);
     vec3 R = reflect(-V, N); 
 
@@ -185,4 +203,6 @@ void main()
     color = pow(color, vec3(1.0/2.2)); 
 
     FragColor = vec4(color , 1.0);
+
+    //FragColor=vec4(vec3(materialProperties.albedo),1.0);
 }

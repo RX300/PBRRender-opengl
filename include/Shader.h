@@ -15,12 +15,17 @@ namespace Renderer
     class Shader
     {
     public:
+        // name of the shader
+        std::string m_name;
+        // the program ID
         unsigned int ID;
-        Shader() noexcept {}
+
+        Shader(const std::string str) noexcept { m_name = str; }
         // constructor generates the shader on the fly
         // ------------------------------------------------------------------------
-        Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr)
+        Shader(const std::string str, const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr)
         {
+            m_name = str;
             loadShader(vertexPath, fragmentPath, geometryPath);
         }
         // 获取当前类的指针
@@ -210,7 +215,7 @@ namespace Renderer
                 if (!success)
                 {
                     glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-                    std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
+                    std::cout << "Shader " << this->m_name << " ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
                               << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
                 }
             }
@@ -220,7 +225,7 @@ namespace Renderer
                 if (!success)
                 {
                     glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-                    std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
+                    std::cout << "Shader " << this->m_name << " ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
                               << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
                 }
             }

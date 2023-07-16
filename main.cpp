@@ -41,7 +41,7 @@ int main()
     // 要注意相对路径的起点是exe启动的地方
     // build and compile shaders
     // -------------------------
-    Shader pbrShader("../../shader/PBR/pbr.vs", "../../shader/PBR/pbr.fs");
+    Shader pbrShader("PBRShader", "../../shader/PBR/pbr.vs", "../../shader/PBR/pbr.fs");
     // 将pbrShader将入到渲染命令中
     Renderer::RenderCommand InitRenderCommand("PBRShaderInit", pbrInitFunc, 1000, pbrShader.getShaderPtr());
     auto initQueue = pbrRender.GetInitQueue();

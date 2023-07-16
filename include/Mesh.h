@@ -4,6 +4,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Shader.h"
 #include "Texture.h"
@@ -37,16 +38,16 @@ namespace ModelLoader
     {
         // material properties
         glm::vec3 albedo = glm::vec3(0.0f);
-        float metallic = 0.0f;
-        float roughness = 0.0f;
+        GLfloat metallic = 1.0f;
+        GLfloat roughness = 0.0f;
 
         // 是否用各项属性的贴图
-        bool useAlbedoMap = false;
-        bool useNormalMap = false;
-        bool useMetallicMap = false;
-        bool useRoughnessMap = false;
-        bool useAOMap = false;
-        bool useEmissiveMap = false;
+        GLboolean useAlbedoMap = false;
+        GLboolean useNormalMap = false;
+        GLboolean useMetallicMap = false;
+        GLboolean useRoughnessMap = false;
+        GLboolean useAOMap = false;
+        GLboolean useEmissiveMap = false;
     };
 
     class Mesh
@@ -59,6 +60,11 @@ namespace ModelLoader
         PBRMaterial pbrmat;
         unsigned int VAO;
         bool usePBR;
+        /*  UBO  */
+        GLuint ubo;
+        GLuint bindingPoint = 0; // 和pbr.fs中的layout(std140, binding = 0)对应
+        GLfloat *ubo_ptr;
+        int bool3;
         // constructor
         Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Renderer::Texture>> textures, bool PBR, PBRMaterial pbr = PBRMaterial()) : usePBR(PBR)
         {
@@ -66,6 +72,12 @@ namespace ModelLoader
             this->indices = indices;
             this->textures = textures;
             this->pbrmat = pbr;
+            // 生成 UBO
+            glGenBuffers(1, &ubo);
+            glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+            glBufferData(GL_UNIFORM_BUFFER, 44, nullptr, GL_STATIC_DRAW);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+            glBindBufferRange(GL_UNIFORM_BUFFER, bindingPoint, ubo, 0, 44);
             // now that we have all the required data, set the vertex buffers and its attribute pointers.
             setupMesh();
         }
@@ -74,6 +86,7 @@ namespace ModelLoader
             glDeleteVertexArrays(1, &VAO);
             glDeleteBuffers(1, &VBO);
             glDeleteBuffers(1, &EBO);
+            glDeleteBuffers(1, &ubo);
         }
         // render the mesh
         void Draw(Renderer::Shader &shader)
@@ -109,14 +122,63 @@ namespace ModelLoader
             else
             {
                 // 这里先不考虑用对同一参数用多张纹理贴图的情况
-                shader.setBool("material.useAlbedoMap", pbrmat.useAlbedoMap);
-                shader.setBool("material.useNormalMap", pbrmat.useNormalMap);
-                shader.setBool("material.useMetallicMap", pbrmat.useMetallicMap);
-                shader.setBool("material.useRoughnessMap", pbrmat.useRoughnessMap);
-                shader.setBool("material.useAOMap", pbrmat.useAOMap);
-                shader.setVec3("material.albedo", pbrmat.albedo);
-                shader.setFloat("material.metallic", pbrmat.metallic);
-                shader.setFloat("material.roughness", pbrmat.roughness);
+                // bind appropriate textures
+                // shader.setVec3("material.albedo", pbrmat.albedo);
+                // shader.setFloat("material.metallic", pbrmat.metallic);
+                // shader.setFloat("material.roughness", pbrmat.roughness);
+                // shader.setBool("material.useAlbedoMap", pbrmat.useAlbedoMap);
+                // shader.setBool("material.useNormalMap", pbrmat.useNormalMap);
+                // shader.setBool("material.useMetallicMap", pbrmat.useMetallicMap);
+                // shader.setBool("material.useRoughnessMap", pbrmat.useRoughnessMap);
+                // shader.setBool("material.useAOMap", pbrmat.useAOMap);
+                // shader.setBool("material.useEmissiveMap", pbrmat.useEmissiveMap);
+
+                glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+                // glBufferSubData(GL_UNIFORM_BUFFER, 0, 4, &temp);
+                // 映射ubo
+                ubo_ptr = (GLfloat *)glMapBufferRange(GL_UNIFORM_BUFFER, 0, 44, GL_MAP_WRITE_BIT);
+                // 检测是否映射成功
+                if (ubo_ptr == nullptr)
+                {
+                    std::cout << "Failed to map uniform buffer object!" << std::endl;
+                    exit(-1);
+                }
+                int boolTemp;
+                // memcpy(&ubo_ptr[0], glm::value_ptr(pbrmat.albedo), 12);
+                ubo_ptr[0] = pbrmat.albedo.r;
+                ubo_ptr[1] = pbrmat.albedo.g;
+                ubo_ptr[2] = pbrmat.albedo.b;
+                ubo_ptr[3] = pbrmat.metallic;
+                ubo_ptr[4] = pbrmat.roughness;
+                // std::cout << "pbr attr:" << pbrmat.useAlbedoMap << std::endl;
+                // std::cout << "GL_TRUE:" << GL_TRUE << std::endl;
+                GLboolean testbool = pbrmat.useAlbedoMap;
+                ubo_ptr[5] = testbool;
+                ubo_ptr[6] = pbrmat.useNormalMap;
+                ubo_ptr[7] = pbrmat.useMetallicMap;
+                ubo_ptr[8] = pbrmat.useRoughnessMap;
+                ubo_ptr[9] = pbrmat.useAOMap;
+                ubo_ptr[10] = pbrmat.useEmissiveMap;
+                // 将数据拷贝到映射的缓冲区
+                // memcpy(&ubo_ptr[0], glm::value_ptr(pbrmat.albedo), 12);
+                // memcpy(&ubo_ptr[16], &pbrmat.metallic, 4);
+                // memcpy(&ubo_ptr[20], &pbrmat.roughness, 4);
+                // int boolAlbedo = pbrmat.useAlbedoMap;
+                // boolTemp = pbrmat.useAlbedoMap;
+                // memcpy(&ubo_ptr[24], &boolAlbedo, 4);
+                // boolTemp = pbrmat.useNormalMap;
+                // memcpy(&ubo_ptr[28], &boolTemp, 4);
+                // boolTemp = pbrmat.useMetallicMap;
+                // memcpy(&ubo_ptr[32], &boolTemp, 4);
+                // boolTemp = pbrmat.useRoughnessMap;
+                // memcpy(&ubo_ptr[36], &boolTemp, 4);
+                // boolTemp = pbrmat.useAOMap;
+                // memcpy(&ubo_ptr[40], &boolTemp, 4);
+                // boolTemp = pbrmat.useEmissiveMap;
+                // memcpy(&ubo_ptr[44], &boolTemp, 4);
+                glUnmapBuffer(GL_UNIFORM_BUFFER);
+
+                glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
                 // bind appropriate textures
                 for (unsigned int i = 0; i < textures.size(); i++)

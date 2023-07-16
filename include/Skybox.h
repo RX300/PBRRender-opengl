@@ -96,12 +96,12 @@ namespace Renderer
 
         Framebuffer m_captureFBO;
 
-        Shader m_skyboxShader;
-        Shader m_equirectangularToCubemapShader;
-        Shader m_irradianceShader;
-        Shader m_prefilterShader;
-        Shader m_brdfShader;
-        Shader m_backgroundShader;
+        Shader m_skyboxShader{"skyboxShader"};
+        Shader m_equirectangularToCubemapShader{"equirectangularToCubemapShader"};
+        Shader m_irradianceShader{"irradianceShader"};
+        Shader m_prefilterShader{"prefilterShader"};
+        Shader m_brdfShader{"brdfShader"};
+        Shader m_backgroundShader{"backgroundShader"};
 
         unsigned int m_cubeVAO = 0;
         unsigned int m_cubeVBO = 0;

@@ -12,8 +12,6 @@ inline void pbrInitFunc(Renderer::Shader *shader, Camera *cam, Renderer::WindowS
     shader->setInt("material.metallicMap", 5);
     shader->setInt("material.roughnessMap", 6);
     shader->setInt("material.aoMap", 7);
-    shader->setVec3("albedo", 0.5f, 0.0f, 0.0f);
-    shader->setFloat("ao", 1.0f);
 
     auto resolution = window->GetFramebufferDims();
     glm::mat4 projection = glm::perspective(glm::radians(cam->Zoom), (float)resolution.first / (float)resolution.second, 0.1f, 100.0f);
@@ -21,7 +19,6 @@ inline void pbrInitFunc(Renderer::Shader *shader, Camera *cam, Renderer::WindowS
     shader->unuse();
     scene->SetSkybox(projection);
     scene->Bake(window->GetWindow());
-    shader->unuse();
 }
 inline void pbrRenderFunc(Renderer::Shader *shader, Camera *cam, Renderer::WindowSystem *window, Renderer::Scene *scene)
 {
@@ -66,7 +63,7 @@ inline void pbrRenderFunc(Renderer::Shader *shader, Camera *cam, Renderer::Windo
         shader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         renderSphere();
     }
-
+    shader->unuse();
     // render skybox (render as last to prevent overdraw)
     skybox->DrawSkybox(view);
 }
