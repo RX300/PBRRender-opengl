@@ -41,24 +41,45 @@ int main()
     // 要注意相对路径的起点是exe启动的地方
     // build and compile shaders
     // -------------------------
-    Shader pbrShader("../../shader/PBR/pbr.vs", "../../shader/PBR/pbr.fs");
+
+    // PBR
+    Shader pbrShader("pbrshader", "../../shader/PBR/pbr.vs", "../../shader/PBR/pbr.fs");
+    Shader lightShader("lightboxShader", "../../shader/light/light_box.vs", "../../shader/light/light_box.fs");
+    // // 将pbrShader将入到渲染命令中
+    // Renderer::RenderCommand InitRenderCommand("PBRShaderInit", pbrInitFunc, 1000, pbrShader.getShaderPtr());
+    // auto initQueue = pbrRender.GetInitQueue();
+    // initQueue->AddRenderCommand(InitRenderCommand);
+
+    // Renderer::RenderCommand LoopRenderCommand("PBRShaderRender", pbrRenderFunc, 1000, pbrShader.getShaderPtr());
+    // auto renderQueue = pbrRender.GetRenderQueue();
+    // renderQueue->AddRenderCommand(LoopRenderCommand);
+
+    // 延迟着色
     // 将pbrShader将入到渲染命令中
-    Renderer::RenderCommand InitRenderCommand("PBRShaderInit", pbrInitFunc, 1000, pbrShader.getShaderPtr());
+    Renderer::RenderCommand InitRenderCommand("deferredInitFunc", deferredInitFunc, 1000, gBuffer.m_GbufferGeometryPass.getShaderPtr());
+    Renderer::RenderCommand InitLightRenderCommand("lightBoxInitFunc", lightBoxInitFunc, 2000, lightShader.getShaderPtr());
     auto initQueue = pbrRender.GetInitQueue();
     initQueue->AddRenderCommand(InitRenderCommand);
+    initQueue->AddRenderCommand(InitLightRenderCommand);
 
-    Renderer::RenderCommand LoopRenderCommand("PBRShaderRender", pbrRenderFunc, 1000, pbrShader.getShaderPtr());
+    Renderer::RenderCommand LoopRenderCommand1("deferredRenderGeometryFunc", deferredRenderGeometryFunc, 1000, gBuffer.m_GbufferGeometryPass.getShaderPtr());
+    Renderer::RenderCommand LoopRenderCommand2("deferredRenderShaderFunc", deferredRenderShaderFunc, 2000, gBuffer.m_GbufferLightingPass.getShaderPtr());
+    Renderer::RenderCommand LoopLightRenderCommand("lightBoxShaderFunc", lightBoxShaderFunc, 3000, lightShader.getShaderPtr());
+
     auto renderQueue = pbrRender.GetRenderQueue();
-    renderQueue->AddRenderCommand(LoopRenderCommand);
+    renderQueue->AddRenderCommand(LoopRenderCommand1);
+    renderQueue->AddRenderCommand(LoopRenderCommand2);
+    renderQueue->AddRenderCommand(LoopLightRenderCommand);
 
     Renderer::Scene scene("testScene");
-    // Model gunModel(FileSystem::getPath("pbr/DamagedHelmet/glTF/DamagedHelmet.gltf").c_str(), true, true);
-    Model gunModel(FileSystem::getPath("pbr/gltf_Cerberus_low/Cerberus_LP.gltf").c_str(), true, true);
-    scene.AddModel(std::make_shared<Model>(gunModel));
+    Model helmetModel(FileSystem::getPath("pbr/DamagedHelmet/glTF/DamagedHelmet.gltf").c_str(), true, true);
+    scene.AddModel(std::make_shared<Model>(helmetModel));
+    // Model gunModel(FileSystem::getPath("pbr/gltf_Cerberus_low/Cerberus_LP.gltf").c_str(), true, true);
+    // scene.AddModel(std::make_shared<Model>(gunModel));
 
     // Skybox
     //------
-    scene.LoadSkybox(FileSystem::getPath("newport_loft.hdr").c_str(), 4096, pbrRender.GetCurrentWindow());
+    // scene.LoadSkybox(FileSystem::getPath("newport_loft.hdr").c_str(), 4096, pbrRender.GetCurrentWindow());
 
     pbrRender.LoadScene(scene.GetScenePtr());
     pbrRender.LoadCamera(camera.GetCameraPtr());

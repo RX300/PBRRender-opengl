@@ -176,6 +176,8 @@ namespace Renderer
         }
         // // 设置当前窗口为当前线程的主上下文
         glfwMakeContextCurrent(m_window);
+        // disable vsync
+        glfwSwapInterval(0);
         // 设置
         glfwSetWindowUserPointer(m_window, &Input::GetInstance());
 

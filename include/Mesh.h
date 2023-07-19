@@ -1,6 +1,6 @@
 #pragma once
 
-// 该处牵扯到如何优化ubo性能，不能为每一个mesh都创建一个ubo，而是为每一个材质创建一个ubo，然后将所有使用该材质的mesh的ubo指向该材质的ubo
+// 该处牵扯到如何优化ubo性能，最好不要为每一个mesh都创建一个ubo(但是目前先这么做)，而是为每一个材质创建一个ubo，然后将所有使用该材质的mesh的ubo指向该材质的ubo
 // 因为每个mesh要是维护一个ubo的话，那么不同的mesh的ubo会绑定到同一个binding point上，这样就会导致每次绘制时都要重新绑定ubo，这样就会降低性能
 // https://community.khronos.org/t/performance-of-opengles-glbindbufferbase/107860/5
 // https://community.khronos.org/t/glbindbufferrange-hugely-expensive/71026

@@ -15,13 +15,14 @@ namespace Renderer
     class Shader
     {
     public:
+        std::string name;
         unsigned int ID;
         Shader() noexcept {}
         // constructor generates the shader on the fly
         // ------------------------------------------------------------------------
-        Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr)
+        Shader(std::string name, const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr)
         {
-            loadShader(vertexPath, fragmentPath, geometryPath);
+            loadShader(name, vertexPath, fragmentPath, geometryPath);
         }
         // 获取当前类的指针
         Shader *getShaderPtr()
@@ -47,8 +48,9 @@ namespace Renderer
             };
             lambda(std::forward<Args>(args)...);
         }
-        void loadShader(const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr)
+        void loadShader(std::string name, const char *vertexPath, const char *fragmentPath, const char *geometryPath = nullptr)
         {
+            this->name = name;
             // 1. retrieve the vertex/fragment source code from filePath
             std::string vertexCode;
             std::string fragmentCode;
@@ -87,7 +89,7 @@ namespace Renderer
             }
             catch (std::ifstream::failure &e)
             {
-                std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
+                std::cout << name << ": ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;
             }
             const char *vShaderCode = vertexCode.c_str();
             const char *fShaderCode = fragmentCode.c_str();
@@ -126,6 +128,10 @@ namespace Renderer
             glDeleteShader(fragment);
             if (geometryPath != nullptr)
                 glDeleteShader(geometry);
+        }
+        ~Shader()
+        {
+            glDeleteProgram(ID);
         }
         // activate the shader
         // ------------------------------------------------------------------------
@@ -210,7 +216,7 @@ namespace Renderer
                 if (!success)
                 {
                     glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-                    std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
+                    std::cout << name << " :ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
                               << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
                 }
             }

@@ -112,19 +112,7 @@ namespace Renderer
 
     inline Skybox::Skybox(const char *hdrPath, const std::size_t resolution, GLFWwindow *window)
     {
-        loadHdrTexture(hdrPath);
-        glGenTextures(1, &m_envCubeMap);
-        m_isHdrTexture = true;
-        setCubeMap(resolution);
-        m_equirectangularToCubemapShader.loadShader(FileSystem::getPath("shader/IBL/cubemap.vs").c_str(), FileSystem::getPath("shader/IBL/equirectangular_to_cubemap.fs").c_str());
-        m_irradianceShader.loadShader(FileSystem::getPath("shader/IBL/cubemap.vs").c_str(), FileSystem::getPath("shader/IBL/irradiance_convolution.fs").c_str());
-        m_prefilterShader.loadShader(FileSystem::getPath("shader/IBL/cubemap.vs").c_str(), FileSystem::getPath("shader/IBL/prefilter.fs").c_str());
-        m_brdfShader.loadShader(FileSystem::getPath("shader/IBL/brdf.vs").c_str(), FileSystem::getPath("shader/IBL/brdf.fs").c_str());
-        loadCubeMapFromHDR(m_hdrTexture, resolution, window);
-        m_backgroundShader.loadShader(FileSystem::getPath("shader/IBL/background.vs").c_str(), FileSystem::getPath("shader/IBL/background.fs").c_str());
-        m_backgroundShader.use();
-        m_backgroundShader.setInt("environmentMap", 0);
-        m_backgroundShader.unuse();
+        Load(hdrPath, resolution, window);
     }
     inline void Skybox::Load(const char *hdrPath, const std::size_t resolution, GLFWwindow *window)
     {
@@ -132,12 +120,12 @@ namespace Renderer
         glGenTextures(1, &m_envCubeMap);
         m_isHdrTexture = true;
         setCubeMap(resolution);
-        m_equirectangularToCubemapShader.loadShader(FileSystem::getPath("shader/IBL/cubemap.vs").c_str(), FileSystem::getPath("shader/IBL/equirectangular_to_cubemap.fs").c_str());
-        m_irradianceShader.loadShader(FileSystem::getPath("shader/IBL/cubemap.vs").c_str(), FileSystem::getPath("shader/IBL/irradiance_convolution.fs").c_str());
-        m_prefilterShader.loadShader(FileSystem::getPath("shader/IBL/cubemap.vs").c_str(), FileSystem::getPath("shader/IBL/prefilter.fs").c_str());
-        m_brdfShader.loadShader(FileSystem::getPath("shader/IBL/brdf.vs").c_str(), FileSystem::getPath("shader/IBL/brdf.fs").c_str());
+        m_equirectangularToCubemapShader.loadShader("equirectangularToCubemapShader", FileSystem::getPath("shader/IBL/cubemap.vs").c_str(), FileSystem::getPath("shader/IBL/equirectangular_to_cubemap.fs").c_str());
+        m_irradianceShader.loadShader("irradianceShader", FileSystem::getPath("shader/IBL/cubemap.vs").c_str(), FileSystem::getPath("shader/IBL/irradiance_convolution.fs").c_str());
+        m_prefilterShader.loadShader("prefilterShader", FileSystem::getPath("shader/IBL/cubemap.vs").c_str(), FileSystem::getPath("shader/IBL/prefilter.fs").c_str());
+        m_brdfShader.loadShader("brdfShader", FileSystem::getPath("shader/IBL/brdf.vs").c_str(), FileSystem::getPath("shader/IBL/brdf.fs").c_str());
         loadCubeMapFromHDR(m_hdrTexture, resolution, window);
-        m_backgroundShader.loadShader(FileSystem::getPath("shader/IBL/background.vs").c_str(), FileSystem::getPath("shader/IBL/background.fs").c_str());
+        m_backgroundShader.loadShader("backgroundShader", FileSystem::getPath("shader/IBL/background.vs").c_str(), FileSystem::getPath("shader/IBL/background.fs").c_str());
         m_backgroundShader.use();
         m_backgroundShader.setInt("environmentMap", 0);
         m_backgroundShader.unuse();

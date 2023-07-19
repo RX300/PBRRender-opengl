@@ -194,6 +194,15 @@ namespace Renderer
     }
     inline void PBRRender::Render(Shader &pbrShader)
     {
+        /*******开启测试*******/
+        // configure global opengl state
+        // -----------------------------
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_STENCIL_TEST);
+        // set depth function to less than AND equal for skybox depth trick.
+        glDepthFunc(GL_LEQUAL);
+        // enable seamless cubemap sampling for lower mip levels in the pre-filter map.
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         // 传统调用着色器更新着色操作的方式
         //-------------------------------------------------------------------------------------------
         // pbrShader.use();
@@ -223,14 +232,6 @@ namespace Renderer
         //-------------------------------------------------------------------------------------------
         m_initQueue.Sort();
         m_initQueue.Update(this->m_camera, &this->m_window, this->m_scene);
-        /*******开启测试*******/
-        // configure global opengl state
-        // -----------------------------
-        glEnable(GL_DEPTH_TEST);
-        // set depth function to less than AND equal for skybox depth trick.
-        glDepthFunc(GL_LEQUAL);
-        // enable seamless cubemap sampling for lower mip levels in the pre-filter map.
-        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         m_renderQueue.Sort();
         // 渲染循环
         while (!glfwWindowShouldClose(m_window.GetWindow()))
@@ -243,10 +244,10 @@ namespace Renderer
             // std::cout << "\rfps: " << std::setw(6) << std::setprecision(2) << std::fixed << 1.0f / deltaTime
             //           << "    currentFrame: " << std::setw(8) << std::setprecision(5) << std::fixed << currentFrame << std::flush;
             // 渲染指令
-            glClearColor(0.9f, 0.3f, 0.3f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
             // 渲染场景
-            m_scene->Update(pbrShader, *m_camera);
+            // m_scene->Update(pbrShader, *m_camera);
             m_renderQueue.Update(this->m_camera, &this->m_window, this->m_scene);
             // 摄像机系统，窗口系统，输入控制系统更新
             m_camera->Update(deltaTime);

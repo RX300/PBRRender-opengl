@@ -5,7 +5,7 @@ set(CMAKE_TOOLCHAIN_FILE "D:/utils/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake"
 set(VCPKG_TARGET_TRIPLET "x64-windows")
 
 # 设置项目名称
-project(Advanced—intancing)
+project(openglRender)
 
 set(PYTHON_EXECUTABLE "D:/Anaconda/envs/AiStudy/python.exe")
 
@@ -27,7 +27,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 list(APPEND SOURCE_FILES
         main.cpp
 )
-set(exename advanced_GLSL)
+set(exename openglRender)
 
 # 因为pybind11_add_module是pybind11提供的，所以我们在使用它之前需要先使用find_package命令来找到pybind11库。
 
