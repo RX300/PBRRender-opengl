@@ -1,5 +1,5 @@
 # PBRRender-opengl
-基于opengl的渲染器，基本上照着learnopengl教程做的，然后封装  
+基于opengl的渲染器
 目前的功能  
 1.pbr光照模型  
 2.IBL  
